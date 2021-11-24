@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jslhrd.mapper.BoardMapper">
+   <!-- 전체 카운트 -->
+   <select id="boardCount" resultType="int">
+      select count(*) from tbl_board
+   </select>
+
+   <!-- 전체 카운트 검색 조건 + 페이지처리 -->
+   <select id="boardCountSearchPage" resultType="int">
+        select count(*) from tbl_board where 
+         <choose>
+            <when test="search=='name'">
+               name like '%' || #{key} || '%'
+            </when>
+            <when test="search=='subject'">
+               subject like '%' || #{key} || '%'
+            </when>
+            <when test="search=='contents'">
+               contents like '%' || #{key} || '%'
+            </when>
+         </choose>
+   </select>
+   
+   <!-- 리스트 페이지 처리 -->
+   <select id="boardList" resultType="egovframework.example.vo.BoardVO">
+      <![CDATA[
+         select X.* from (select rownum as rnum, A.* from
+            (select * from tbl_board order by idx desc) A
+               where rownum <= #{endpage}) X 
+                  where X.rnum >= #{startpage}
+      ]]>
+   </select>
+   
+   <!-- 전체 목록 검색 + 페이지처리 -->
+   <select id="boardListSearchPage" resultType="egovframework.example.vo.BoardVO">
+      select X.* from (select rownum as rnum, A.* from
+            (select * from tbl_board order by idx desc) A where
+         <choose>
+            <when test="search=='name'">
+               name like '%' || #{key} || '%'
+            </when>
+            <when test="search=='subject'">
+               subject like '%' || #{key} || '%'
+            </when>
+            <when test="search=='contents'">
+               contents like '%' || #{key} || '%'
+            </when>
+         </choose>
+         <trim prefix="AND">
+            <![CDATA[
+               rownum <= #{endpage}) X where
+            ]]>
+         </trim>
+         <choose>
+            <when test="search=='name'">
+               name like '%' || #{key} || '%'
+            </when>
+            <when test="search=='subject'">
+               subject like '%' || #{key} || '%'
+            </when>
+            <when test="search=='contents'">
+               contents like '%' || #{key} || '%'
+            </when>
+         </choose>
+         <trim prefix="AND">
+            <![CDATA[
+               X.rnum >= #{startpage}
+            ]]>
+         </trim>
+   </select>
+   
+   <!-- 등록 -->
+   <insert id="boardWrite">
+      insert into tbl_board(idx,name,pass,subject,contents)
+         values(tbl_board_seq_idx.nextval,#{name},#{pass},#{subject},#{contents})
+   </insert>
+   
+   <!-- 조회수 증가 -->
+   <update id="boardHits">
+   		update tbl_board set readcnt=readcnt+1 where idx=#{idx}
+   </update>
+   
+   <!-- 해당 글 조회 view -->
+   <select id="boardView" resultType="egovframework.example.vo.BoardVO">
+   		select * from tbl_board where idx=#{idx}
+   </select>
+   
+   <!-- 수정하기 -->
+   <update id="boardModify">
+   		update tbl_board set subject=#{subject}, contents=#{contents}
+   			where idx=#{idx} and pass=#{pass}
+   </update>
+   
+   <!-- 삭제 -->
+   <delete id="boardDelete">
+   		delete from tbl_board where idx=#{idx} and pass=#{pass}
+   </delete>
+   
+   
+   
+</mapper>
